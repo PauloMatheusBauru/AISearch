@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscador de Peças | Elite Automotiva</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Estilo Reset e Base */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #FAFAFA; /* Fundo muito claro */
+            color: #333;
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            background: #FFFFFF;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); /* Sombra suave e elevada */
+            width: 100%;
+            max-width: 800px;
+            transition: all 0.3s ease;
+        }
+        /* Cabeçalho e Título */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #212121; /* Preto sofisticado */
+            font-weight: 300; /* Leveza na fonte */
+            font-size: 2.2em;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 0.95em;
+            font-weight: 400;
+        }
+        /* Formulário de Busca */
+        form {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 40px;
+            border: 2px solid #E0E0E0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        input[type="text"] {
+            flex-grow: 1;
+            padding: 15px;
+            border: none;
+            font-size: 1em;
+            outline: none; /* Remove a borda azul ao focar */
+        }
+        button {
+            padding: 15px 30px;
+            background-color: #212121; /* Botão preto elegante */
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #424242;
+        }
+        /* Resultados */
+        .resultado-box {
+            border: 1px solid #E0E0E0;
+            border-radius: 8px;
+            padding: 25px;
+            background: #F9F9F9;
+        }
+        .resultado-box h2 {
+            font-size: 1.2em;
+            color: #212121;
+            border-bottom: 1px solid #E0E0E0;
+            padding-bottom: 10px;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        .resultado-box p {
+            font-size: 1.1em;
+            line-height: 1.6;
+            color: #424242;
+        }
+        /* Referências */
+        .referencias {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #E0E0E0;
+        }
+        .referencias h3 {
+            font-size: 1em;
+            color: #757575;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        .referencias a {
+            color: #757575;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 8px;
+            transition: color 0.3s;
+            font-size: 0.9em;
+        }
+        .referencias a:hover {
+            color: #212121; /* Cor mais escura ao passar o mouse */
+        }
+        .error-msg {
+            color: #D32F2F; /* Vermelho mais sóbrio */
+            font-weight: 600;
+            text-align: center;
+            padding: 10px;
+            border: 1px solid #FFCDD2;
+            background-color: #FFEBEE;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-car-side"></i> Buscador de Peças</h1>
+            <p class="subtitle">Encontre códigos de fabricantes de forma rápida e precisa (Powered by Gemini AI)</p>
+        </div>
+
+        <form method="POST">
+            <input type="text" name="peca" placeholder="Ex: Amortecedor dianteiro hb20 2020" required value="{{ termo_pesquisa if termo_pesquisa else '' }}">
+            <button type="submit"><i class="fas fa-search"></i> Buscar</button>
+        </form>
+
+        {% if erro %}
+            <p class="error-msg"><i class="fas fa-exclamation-circle"></i> {{ erro }}</p>
+        {% endif %}
+
+        {% if resultado_texto %}
+        <div class="resultado-box">
+            <h2><i class="fas fa-cogs"></i> Código Principal:</h2>
+            <p><strong>{{ resultado_texto | safe }}</strong></p>
+
+            {# SEÇÃO OCULTADA: A quantidade de tokens não será mostrada ao usuário #}
+            {# {% if tokens_uso and tokens_uso['total'] > 0 %} ... {% endif %} #}
+
+            {# Exibe as fontes de referência #}
+            {% if fontes %}
+            <div class="referencias">
+                <h3><i class="fas fa-link"></i> Fontes Consultadas (Para Verificação):</h3>
+                {% for fonte in fontes %}
+                    <a href="{{ fonte.uri }}" target="_blank" title="{{ fonte.titulo }}">{{ loop.index }}. {{ fonte.titulo }}</a>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
