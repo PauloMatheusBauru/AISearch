@@ -3,163 +3,310 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buscador de Peças | Elite Automotiva</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>Consultor de Códigos de Peças Automotivas - Rápido</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Estilo Reset e Base */
+        /* Define a fonte Inter e o fundo limpo */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #FAFAFA; /* Fundo muito claro */
-            color: #333;
-            margin: 0;
-            padding: 40px 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fb; /* Fundo muito leve */
+            color: #1f2937;
         }
-        .container {
-            background: #FFFFFF;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); /* Sombra suave e elevada */
-            width: 100%;
-            max-width: 800px;
+        .container-app {
+            min-height: 100vh;
+            display: flex;
+            align-items: center; /* Centraliza verticalmente o card */
+            justify-content: center; /* Centraliza horizontalmente o card */
+        }
+        .card {
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08);
             transition: all 0.3s ease;
+            margin: 1rem;
         }
-        /* Cabeçalho e Título */
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
+        .spinner {
+            border-top-color: transparent;
+            border-left-color: transparent;
+            animation: spin 1s ease-in-out infinite;
         }
-        h1 {
-            color: #212121; /* Preto sofisticado */
-            font-weight: 300; /* Leveza na fonte */
-            font-size: 2.2em;
-            margin-bottom: 5px;
-        }
-        .subtitle {
-            color: #666;
-            font-size: 0.95em;
-            font-weight: 400;
-        }
-        /* Formulário de Busca */
-        form {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 40px;
-            border: 2px solid #E0E0E0;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        input[type="text"] {
-            flex-grow: 1;
-            padding: 15px;
-            border: none;
-            font-size: 1em;
-            outline: none; /* Remove a borda azul ao focar */
-        }
-        button {
-            padding: 15px 30px;
-            background-color: #212121; /* Botão preto elegante */
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-size: 1em;
-            font-weight: 600;
-            transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #424242;
-        }
-        /* Resultados */
-        .resultado-box {
-            border: 1px solid #E0E0E0;
-            border-radius: 8px;
-            padding: 25px;
-            background: #F9F9F9;
-        }
-        .resultado-box h2 {
-            font-size: 1.2em;
-            color: #212121;
-            border-bottom: 1px solid #E0E0E0;
-            padding-bottom: 10px;
-            margin-top: 0;
-            margin-bottom: 15px;
-        }
-        .resultado-box p {
-            font-size: 1.1em;
-            line-height: 1.6;
-            color: #424242;
-        }
-        /* Referências */
-        .referencias {
-            margin-top: 25px;
-            padding-top: 20px;
-            border-top: 1px solid #E0E0E0;
-        }
-        .referencias h3 {
-            font-size: 1em;
-            color: #757575;
-            margin-bottom: 10px;
-            font-weight: 600;
-        }
-        .referencias a {
-            color: #757575;
-            text-decoration: none;
-            display: block;
-            margin-bottom: 8px;
-            transition: color 0.3s;
-            font-size: 0.9em;
-        }
-        .referencias a:hover {
-            color: #212121; /* Cor mais escura ao passar o mouse */
-        }
-        .error-msg {
-            color: #D32F2F; /* Vermelho mais sóbrio */
-            font-weight: 600;
-            text-align: center;
-            padding: 10px;
-            border: 1px solid #FFCDD2;
-            background-color: #FFEBEE;
-            border-radius: 4px;
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1><i class="fas fa-car-side"></i> Buscador de Peças</h1>
-            <p class="subtitle">Encontre códigos de fabricantes de forma rápida e precisa (Powered by Gemini AI)</p>
+
+<div class="container-app">
+    <div class="card w-full max-w-2xl bg-white p-6 md:p-10 rounded-2xl">
+
+        <h1 class="text-3xl font-black text-teal-600 mb-1">
+            ⚙️ CodeFinder
+        </h1>
+        <div class="flex justify-between items-center border-b pb-4 mb-6">
+            <p class="text-gray-500 text-sm">
+                Consulta de Códigos de Referência de Peças Automotivas.
+            </p>
+            <div class="flex items-center space-x-4">
+                <a href="{{ url_for('logout') }}" class="text-xs text-red-500 hover:text-red-700 font-semibold py-1 px-3 border border-red-300 rounded-full transition duration-150">
+                    Sair ({{ current_user.username }})
+                </a>
+            </div>
         </div>
 
-        <form method="POST">
-            <input type="text" name="peca" placeholder="Ex: Amortecedor dianteiro hb20 2020" required value="{{ termo_pesquisa if termo_pesquisa else '' }}">
-            <button type="submit"><i class="fas fa-search"></i> Buscar</button>
-        </form>
+        <div class="mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm">
+            <label for="peca-input" class="block text-sm font-bold text-gray-700 mb-2">
+                Descrição Detalhada da Peça:
+            </label>
+            <textarea id="peca-input" rows="3"
+                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 transition duration-150 resize-none shadow-inner"
+                placeholder="Exemplo: CABO DE VELA E VELA GOL G5 1.0"
+            >CABO DE VELA E VELA G5 1.0 8V</textarea>
+        </div>
 
-        {% if erro %}
-            <p class="error-msg"><i class="fas fa-exclamation-circle"></i> {{ erro }}</p>
-        {% endif %}
+        <button id="consultar-btn"
+            class="w-full px-4 py-3 bg-teal-500 text-white font-bold text-lg rounded-lg hover:bg-teal-600 transition duration-300 focus:outline-none focus:ring-4 focus:ring-teal-400 focus:ring-opacity-70 flex items-center justify-center disabled:opacity-50 transform hover:scale-[1.01] shadow-lg shadow-teal-500/50"
+            {% if requests_left <= 0 %}disabled{% endif %}
+        >
+            <svg id="loading-spinner" class="spinner h-5 w-5 mr-3 hidden border-4 border-white border-solid rounded-full" viewBox="0 0 24 24"></svg>
+            <span id="button-text">{% if requests_left <= 0 %}Saldo Esgotado{% else %}Consultar Códigos{% endif %}</span>
+        </button>
 
-        {% if resultado_texto %}
-        <div class="resultado-box">
-            <h2><i class="fas fa-cogs"></i> Código Principal:</h2>
-            <p><strong>{{ resultado_texto | safe }}</strong></p>
+        <div id="tokens-section" class="mt-4 text-center">
+            <span id="tokens-info" class="text-sm font-bold
+                  {% if requests_left <= 2 %}text-red-500{% else %}text-gray-600{% endif %}">
+                Consultas Restantes: {{ requests_left }}
+            </span>
 
-            {# SEÇÃO OCULTADA: A quantidade de tokens não será mostrada ao usuário #}
-            {# {% if tokens_uso and tokens_uso['total'] > 0 %} ... {% endif %} #}
-
-            {# Exibe as fontes de referência #}
-            {% if fontes %}
-            <div class="referencias">
-                <h3><i class="fas fa-link"></i> Fontes Consultadas (Para Verificação):</h3>
-                {% for fonte in fontes %}
-                    <a href="{{ fonte.uri }}" target="_blank" title="{{ fonte.titulo }}">{{ loop.index }}. {{ fonte.titulo }}</a>
-                {% endfor %}
-            </div>
+            {% if requests_left <= 0 %}
+                <div id="recharge-alert" class="mt-3 p-3 bg-red-100 border border-red-300 rounded-lg shadow-sm">
+                    <p class="text-red-700 text-sm font-semibold mb-2">Seu saldo de consultas acabou.</p>
+                    <a href="{{ recharge_link }}" target="_blank"
+                        class="px-4 py-2 bg-red-600 text-white text-sm font-bold rounded-lg hover:bg-red-700 transition duration-150 shadow-md inline-flex items-center"
+                    >
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V6m0 10v2M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Doar / Recarregar {{ recharge_tokens }} Consultas
+                    </a>
+                </div>
             {% endif %}
         </div>
-        {% endif %}
+        <div id="resultado" class="mt-8 pt-6 border-t border-gray-100">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="mr-2 text-teal-600">📊</span> Resultado da Consulta:
+            </h2>
+
+            <div id="resultado-content" class="min-h-32 bg-gray-900 p-5 rounded-lg text-teal-300 font-mono text-sm shadow-xl whitespace-pre-wrap overflow-x-auto">
+                Digite a descrição da peça acima e clique em "Consultar Códigos".
+            </div>
+
+            <div id="metadata" class="mt-4 pt-4 border-t border-gray-100 hidden">
+                <p class="text-sm font-semibold text-gray-600 mb-2">Detalhes da Consulta (Tokens):</p>
+                <div class="flex flex-col sm:flex-row justify-between text-xs text-gray-500 space-y-1 sm:space-y-0">
+                    <span id="prompt-tokens" class="font-mono">Tokens de Entrada (Prompt + Instrução): 0</span>
+                    <span id="output-tokens" class="font-mono">Tokens de Saída (Resposta): 0</span>
+                </div>
+            </div>
+
+            <div id="fontes" class="mt-4 hidden">
+                <p class="text-sm font-semibold text-gray-600 mb-2">Fontes Consultadas (Busca Web):</p>
+                <ul id="fontes-lista" class="list-disc ml-5 text-xs text-gray-500 space-y-1">
+                    </ul>
+            </div>
+
+            <div class="mt-8 p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 rounded-lg shadow-sm" role="alert">
+                <p class="font-bold mb-1">⚠️ Aviso Importante:</p>
+                <p class="text-sm">Sempre verifique a compatibilidade no catálogo do fabricante ou compare os códigos e o modelo da peça com a que está instalada no seu veículo antes de finalizar a compra. **Esta consulta é apenas uma referência**.</p>
+            </div>
+
+        </div>
+
+        <div id="message-box" class="fixed top-4 right-4 p-4 rounded-lg shadow-lg hidden transition-opacity duration-300" role="alert">
+            <p id="message-text" class="font-medium"></p>
+        </div>
+
     </div>
+</div>
+
+<script>
+    // --- Elementos do DOM ---
+    const inputPeca = document.getElementById('peca-input');
+    const btnConsultar = document.getElementById('consultar-btn');
+    const btnText = document.getElementById('button-text');
+    const loadingSpinner = document.getElementById('loading-spinner');
+    const resultadoContent = document.getElementById('resultado-content');
+    const fontesDiv = document.getElementById('fontes');
+    const fontesLista = document.getElementById('fontes-lista');
+    const messageBox = document.getElementById('message-box');
+    const messageText = document.getElementById('message-text');
+    const metadataDiv = document.getElementById('metadata');
+    const promptTokensEl = document.getElementById('prompt-tokens');
+    const outputTokensEl = document.getElementById('output-tokens');
+
+    // Elemento para exibir o saldo (abaixo do botão)
+    const tokensInfoEl = document.getElementById('tokens-info');
+    const tokensSection = document.getElementById('tokens-section'); // Container pai
+    const RECHARGE_LINK = "{{ recharge_link }}";
+    const RECHARGE_TOKENS = "{{ recharge_tokens }}";
+
+    // --- Funções de Feedback ---
+    function showMessage(message, type = 'info') {
+        let classes = '';
+        if (type === 'error') {
+            classes = 'bg-red-100 text-red-700 border border-red-200';
+        } else if (type === 'success') {
+            classes = 'bg-green-100 text-green-700 border border-green-200';
+        } else if (type === 'warning') {
+            classes = 'bg-yellow-100 text-yellow-700 border border-yellow-200';
+        } else {
+             classes = 'bg-blue-100 text-blue-700 border border-blue-200';
+        }
+
+        messageBox.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg transition-opacity duration-300 ${classes}`;
+        messageText.textContent = message;
+        messageBox.classList.remove('hidden');
+
+        setTimeout(() => {
+            messageBox.classList.add('hidden');
+        }, 5000);
+    }
+
+    // --- Lógica Principal (Consulta Flask Backend) ---
+    async function consultarCodigos() {
+        const userQuery = inputPeca.value.trim();
+        if (!userQuery) {
+            showMessage("Por favor, digite a descrição da peça e do veículo.", 'warning');
+            return;
+        }
+
+        // Extrai o saldo atual da tela para checagem rápida
+        const currentBalanceText = tokensInfoEl.textContent.match(/\d+/);
+        const currentBalance = currentBalanceText ? parseInt(currentBalanceText[0]) : 0;
+
+        if (currentBalance <= 0) {
+            showMessage("Seu saldo de requisições acabou. Recarregue sua conta para continuar usando.", 'error');
+            return;
+        }
+
+        // 1. Iniciar estado de carregamento
+        btnConsultar.disabled = true;
+        btnText.textContent = "Buscando Códigos...";
+        loadingSpinner.classList.remove('hidden');
+        resultadoContent.textContent = "Pesquisando informações na web e gerando códigos...";
+        fontesDiv.classList.add('hidden');
+        fontesLista.innerHTML = '';
+        metadataDiv.classList.add('hidden');
+
+        try {
+            // Requisição POST para o endpoint do Flask
+            const response = await fetch('/consultar_codigos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: userQuery })
+            });
+
+            const result = await response.json();
+
+            if (result.error) {
+                if (result.error === 'LIMIT_EXCEEDED') {
+                    resultadoContent.textContent = result.message;
+                    showMessage(result.message, 'error');
+                } else {
+                    resultadoContent.textContent = `Erro do Servidor (${result.error}): ${result.message}`;
+                    showMessage(result.message || "Erro desconhecido ao processar a consulta no servidor.", 'error');
+                }
+                return;
+            }
+
+            // 2. ATUALIZAÇÃO DO SALDO NO FRONT-END
+            if (result.new_balance !== undefined) {
+                const newBalance = result.new_balance;
+
+                // Atualiza o texto e a cor do saldo
+                tokensInfoEl.textContent = `Consultas Restantes: ${newBalance}`;
+                tokensInfoEl.classList.remove('text-red-500', 'text-gray-600');
+                if (newBalance <= 2) {
+                    tokensInfoEl.classList.add('text-red-500');
+                } else {
+                    tokensInfoEl.classList.add('text-gray-600');
+                }
+
+                if (newBalance <= 0) {
+                     btnConsultar.disabled = true;
+                     btnText.textContent = "Saldo Esgotado";
+                     showMessage("Seu saldo de requisições chegou a zero.", 'warning');
+
+                     // Injeta o botão de recarga no DOM, se ele já não estiver lá
+                     if (!document.getElementById('recharge-alert')) {
+                         tokensSection.innerHTML += `
+                            <div id="recharge-alert" class="mt-3 p-3 bg-red-100 border border-red-300 rounded-lg shadow-sm">
+                                <p class="text-red-700 text-sm font-semibold mb-2">Seu saldo de consultas acabou.</p>
+                                <a href="${RECHARGE_LINK}" target="_blank"
+                                    class="px-4 py-2 bg-red-600 text-white text-sm font-bold rounded-lg hover:bg-red-700 transition duration-150 shadow-md inline-flex items-center"
+                                >
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V6m0 10v2M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    Doar / Recarregar ${RECHARGE_TOKENS} Consultas
+                                </a>
+                            </div>
+                         `;
+                     }
+                }
+            }
+
+            // 3. Exibir o resultado
+            const text = result.result_text;
+            resultadoContent.textContent = text;
+            showMessage("Códigos consultados com sucesso!", 'success');
+
+            // 4. Extrair e exibir o consumo de tokens
+            if (result.usageMetadata) {
+                const promptTokens = result.usageMetadata.promptTokenCount || 0;
+                const outputTokens = result.usageMetadata.outputTokenCount || 0;
+
+                promptTokensEl.textContent = `Tokens de Entrada (Prompt + Instrução): ${promptTokens}`;
+                outputTokensEl.textContent = `Tokens de Saída (Resposta): ${outputTokens}`;
+                metadataDiv.classList.remove('hidden');
+            }
+
+            // 5. Extrair e exibir as fontes
+            const sources = result.sources || [];
+            if (sources.length > 0) {
+                fontesLista.innerHTML = '';
+                sources.forEach(source => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<a href="${source.uri}" target="_blank" class="hover:underline text-blue-400">${source.title}</a>`;
+                    fontesLista.appendChild(li);
+                });
+                fontesDiv.classList.remove('hidden');
+            } else {
+                fontesDiv.classList.add('hidden');
+            }
+
+        } catch (error) {
+            console.error("Erro na consulta de códigos:", error);
+            resultadoContent.textContent = "Ocorreu um erro ao consultar os códigos. Verifique sua conexão ou se o servidor Flask está rodando.";
+            showMessage(error.message || "Erro de Conexão: Falha ao se comunicar com o servidor.", 'error');
+
+        } finally {
+            // 6. Finalizar estado de carregamento
+            if (btnText.textContent === "Buscando Códigos...") {
+                btnConsultar.disabled = false;
+                btnText.textContent = "Consultar Códigos";
+                loadingSpinner.classList.add('hidden');
+            }
+        }
+    }
+
+    // Adicionar listener ao botão
+    btnConsultar.addEventListener('click', consultarCodigos);
+
+    // Isso impede a submissão de formulário (que causa o "voltar para a página")
+    // e garante que a tecla Enter chame a função JS corretamente.
+    inputPeca.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey && !btnConsultar.disabled) {
+            e.preventDefault();
+            consultarCodigos();
+        }
+    });
+</script>
 </body>
 </html>
