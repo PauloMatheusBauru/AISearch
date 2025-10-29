@@ -3,21 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consultor de Códigos de Peças Automotivas - Rápido</title>
+    <title>Consultor de Códigos de Peças Automotivas</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Define a fonte Inter e o fundo limpo */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f7f9fb; /* Fundo muito leve */
+            background-color: #f7f9fb;
             color: #1f2937;
         }
         .container-app {
             min-height: 100vh;
             display: flex;
-            align-items: center; /* Centraliza verticalmente o card */
-            justify-content: center; /* Centraliza horizontalmente o card */
+            align-items: center;
+            justify-content: center;
         }
         .card {
             box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08);
@@ -39,20 +38,13 @@
 
 <div class="container-app">
     <div class="card w-full max-w-2xl bg-white p-6 md:p-10 rounded-2xl">
-
         <h1 class="text-3xl font-black text-teal-600 mb-1">
             ⚙️ CodeFinder
         </h1>
-        <div class="flex justify-between items-center border-b pb-4 mb-6">
-            <p class="text-gray-500 text-sm">
-                Consulta de Códigos de Referência de Peças Automotivas.
-            </p>
-            <div class="flex items-center space-x-4">
-                <a href="{{ url_for('logout') }}" class="text-xs text-red-500 hover:text-red-700 font-semibold py-1 px-3 border border-red-300 rounded-full transition duration-150">
-                    Sair ({{ current_user.username }})
-                </a>
-            </div>
-        </div>
+
+        <p class="text-gray-500 text-sm border-b pb-4 mb-6">
+            Consulta de Códigos de Referência de Peças Automotivas.
+        </p>
 
         <div class="mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm">
             <label for="peca-input" class="block text-sm font-bold text-gray-700 mb-2">
@@ -60,36 +52,16 @@
             </label>
             <textarea id="peca-input" rows="3"
                 class="w-full p-3 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 transition duration-150 resize-none shadow-inner"
-                placeholder="Exemplo: CABO DE VELA E VELA GOL G5 1.0"
+                placeholder="Exemplo: CABO DE VELA E VELA GOL G5 1.0 8V"
             >CABO DE VELA E VELA G5 1.0 8V</textarea>
         </div>
 
         <button id="consultar-btn"
-            class="w-full px-4 py-3 bg-teal-500 text-white font-bold text-lg rounded-lg hover:bg-teal-600 transition duration-300 focus:outline-none focus:ring-4 focus:ring-teal-400 focus:ring-opacity-70 flex items-center justify-center disabled:opacity-50 transform hover:scale-[1.01] shadow-lg shadow-teal-500/50"
-            {% if requests_left <= 0 %}disabled{% endif %}
-        >
+            class="w-full px-4 py-3 bg-teal-500 text-white font-bold text-lg rounded-lg hover:bg-teal-600 transition duration-300 focus:outline-none focus:ring-4 focus:ring-teal-400 focus:ring-opacity-70 flex items-center justify-center disabled:opacity-50 transform hover:scale-[1.01] shadow-lg shadow-teal-500/50">
             <svg id="loading-spinner" class="spinner h-5 w-5 mr-3 hidden border-4 border-white border-solid rounded-full" viewBox="0 0 24 24"></svg>
-            <span id="button-text">{% if requests_left <= 0 %}Saldo Esgotado{% else %}Consultar Códigos{% endif %}</span>
+            <span id="button-text">Consultar Códigos</span>
         </button>
 
-        <div id="tokens-section" class="mt-4 text-center">
-            <span id="tokens-info" class="text-sm font-bold
-                  {% if requests_left <= 2 %}text-red-500{% else %}text-gray-600{% endif %}">
-                Consultas Restantes: {{ requests_left }}
-            </span>
-
-            {% if requests_left <= 0 %}
-                <div id="recharge-alert" class="mt-3 p-3 bg-red-100 border border-red-300 rounded-lg shadow-sm">
-                    <p class="text-red-700 text-sm font-semibold mb-2">Seu saldo de consultas acabou.</p>
-                    <a href="{{ recharge_link }}" target="_blank"
-                        class="px-4 py-2 bg-red-600 text-white text-sm font-bold rounded-lg hover:bg-red-700 transition duration-150 shadow-md inline-flex items-center"
-                    >
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V6m0 10v2M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        Doar / Recarregar {{ recharge_tokens }} Consultas
-                    </a>
-                </div>
-            {% endif %}
-        </div>
         <div id="resultado" class="mt-8 pt-6 border-t border-gray-100">
             <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
                 <span class="mr-2 text-teal-600">📊</span> Resultado da Consulta:
@@ -109,26 +81,22 @@
 
             <div id="fontes" class="mt-4 hidden">
                 <p class="text-sm font-semibold text-gray-600 mb-2">Fontes Consultadas (Busca Web):</p>
-                <ul id="fontes-lista" class="list-disc ml-5 text-xs text-gray-500 space-y-1">
-                    </ul>
+                <ul id="fontes-lista" class="list-disc ml-5 text-xs text-gray-500 space-y-1"></ul>
             </div>
 
             <div class="mt-8 p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 rounded-lg shadow-sm" role="alert">
                 <p class="font-bold mb-1">⚠️ Aviso Importante:</p>
-                <p class="text-sm">Sempre verifique a compatibilidade no catálogo do fabricante ou compare os códigos e o modelo da peça com a que está instalada no seu veículo antes de finalizar a compra. **Esta consulta é apenas uma referência**.</p>
+                <p class="text-sm">Sempre verifique a compatibilidade no catálogo do fabricante ou compare os códigos e o modelo da peça com a que está instalada no seu veículo antes de finalizar a compra. <b>Esta consulta é apenas uma referência.</b></p>
             </div>
-
         </div>
 
         <div id="message-box" class="fixed top-4 right-4 p-4 rounded-lg shadow-lg hidden transition-opacity duration-300" role="alert">
             <p id="message-text" class="font-medium"></p>
         </div>
-
     </div>
 </div>
 
 <script>
-    // --- Elementos do DOM ---
     const inputPeca = document.getElementById('peca-input');
     const btnConsultar = document.getElementById('consultar-btn');
     const btnText = document.getElementById('button-text');
@@ -142,13 +110,6 @@
     const promptTokensEl = document.getElementById('prompt-tokens');
     const outputTokensEl = document.getElementById('output-tokens');
 
-    // Elemento para exibir o saldo (abaixo do botão)
-    const tokensInfoEl = document.getElementById('tokens-info');
-    const tokensSection = document.getElementById('tokens-section'); // Container pai
-    const RECHARGE_LINK = "{{ recharge_link }}";
-    const RECHARGE_TOKENS = "{{ recharge_tokens }}";
-
-    // --- Funções de Feedback ---
     function showMessage(message, type = 'info') {
         let classes = '';
         if (type === 'error') {
@@ -158,46 +119,28 @@
         } else if (type === 'warning') {
             classes = 'bg-yellow-100 text-yellow-700 border border-yellow-200';
         } else {
-             classes = 'bg-blue-100 text-blue-700 border border-blue-200';
+            classes = 'bg-blue-100 text-blue-700 border border-blue-200';
         }
 
         messageBox.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg transition-opacity duration-300 ${classes}`;
         messageText.textContent = message;
         messageBox.classList.remove('hidden');
-
-        setTimeout(() => {
-            messageBox.classList.add('hidden');
-        }, 5000);
+        setTimeout(() => messageBox.classList.add('hidden'), 4000);
     }
 
-    // --- Lógica Principal (Consulta Flask Backend) ---
     async function consultarCodigos() {
         const userQuery = inputPeca.value.trim();
         if (!userQuery) {
-            showMessage("Por favor, digite a descrição da peça e do veículo.", 'warning');
+            showMessage("Por favor, digite a descrição da peça.", 'warning');
             return;
         }
 
-        // Extrai o saldo atual da tela para checagem rápida
-        const currentBalanceText = tokensInfoEl.textContent.match(/\d+/);
-        const currentBalance = currentBalanceText ? parseInt(currentBalanceText[0]) : 0;
-
-        if (currentBalance <= 0) {
-            showMessage("Seu saldo de requisições acabou. Recarregue sua conta para continuar usando.", 'error');
-            return;
-        }
-
-        // 1. Iniciar estado de carregamento
         btnConsultar.disabled = true;
-        btnText.textContent = "Buscando Códigos...";
+        btnText.textContent = "Buscando...";
         loadingSpinner.classList.remove('hidden');
-        resultadoContent.textContent = "Pesquisando informações na web e gerando códigos...";
-        fontesDiv.classList.add('hidden');
-        fontesLista.innerHTML = '';
-        metadataDiv.classList.add('hidden');
+        resultadoContent.textContent = "Consultando a IA...";
 
         try {
-            // Requisição POST para o endpoint do Flask
             const response = await fetch('/consultar_codigos', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -207,73 +150,26 @@
             const result = await response.json();
 
             if (result.error) {
-                if (result.error === 'LIMIT_EXCEEDED') {
-                    resultadoContent.textContent = result.message;
-                    showMessage(result.message, 'error');
-                } else {
-                    resultadoContent.textContent = `Erro do Servidor (${result.error}): ${result.message}`;
-                    showMessage(result.message || "Erro desconhecido ao processar a consulta no servidor.", 'error');
-                }
+                showMessage(result.message || "Erro ao consultar o servidor.", 'error');
+                resultadoContent.textContent = result.message || "Erro interno.";
                 return;
             }
 
-            // 2. ATUALIZAÇÃO DO SALDO NO FRONT-END
-            if (result.new_balance !== undefined) {
-                const newBalance = result.new_balance;
+            resultadoContent.textContent = result.result_text || "Nenhum resultado encontrado.";
+            showMessage("Consulta concluída!", 'success');
 
-                // Atualiza o texto e a cor do saldo
-                tokensInfoEl.textContent = `Consultas Restantes: ${newBalance}`;
-                tokensInfoEl.classList.remove('text-red-500', 'text-gray-600');
-                if (newBalance <= 2) {
-                    tokensInfoEl.classList.add('text-red-500');
-                } else {
-                    tokensInfoEl.classList.add('text-gray-600');
-                }
-
-                if (newBalance <= 0) {
-                     btnConsultar.disabled = true;
-                     btnText.textContent = "Saldo Esgotado";
-                     showMessage("Seu saldo de requisições chegou a zero.", 'warning');
-
-                     // Injeta o botão de recarga no DOM, se ele já não estiver lá
-                     if (!document.getElementById('recharge-alert')) {
-                         tokensSection.innerHTML += `
-                            <div id="recharge-alert" class="mt-3 p-3 bg-red-100 border border-red-300 rounded-lg shadow-sm">
-                                <p class="text-red-700 text-sm font-semibold mb-2">Seu saldo de consultas acabou.</p>
-                                <a href="${RECHARGE_LINK}" target="_blank"
-                                    class="px-4 py-2 bg-red-600 text-white text-sm font-bold rounded-lg hover:bg-red-700 transition duration-150 shadow-md inline-flex items-center"
-                                >
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V6m0 10v2M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                    Doar / Recarregar ${RECHARGE_TOKENS} Consultas
-                                </a>
-                            </div>
-                         `;
-                     }
-                }
-            }
-
-            // 3. Exibir o resultado
-            const text = result.result_text;
-            resultadoContent.textContent = text;
-            showMessage("Códigos consultados com sucesso!", 'success');
-
-            // 4. Extrair e exibir o consumo de tokens
             if (result.usageMetadata) {
-                const promptTokens = result.usageMetadata.promptTokenCount || 0;
-                const outputTokens = result.usageMetadata.outputTokenCount || 0;
-
-                promptTokensEl.textContent = `Tokens de Entrada (Prompt + Instrução): ${promptTokens}`;
-                outputTokensEl.textContent = `Tokens de Saída (Resposta): ${outputTokens}`;
+                promptTokensEl.textContent = `Tokens de Entrada: ${result.usageMetadata.promptTokenCount}`;
+                outputTokensEl.textContent = `Tokens de Saída: ${result.usageMetadata.outputTokenCount}`;
                 metadataDiv.classList.remove('hidden');
             }
 
-            // 5. Extrair e exibir as fontes
             const sources = result.sources || [];
             if (sources.length > 0) {
                 fontesLista.innerHTML = '';
-                sources.forEach(source => {
+                sources.forEach(src => {
                     const li = document.createElement('li');
-                    li.innerHTML = `<a href="${source.uri}" target="_blank" class="hover:underline text-blue-400">${source.title}</a>`;
+                    li.innerHTML = `<a href="${src.uri}" target="_blank" class="hover:underline text-blue-400">${src.title}</a>`;
                     fontesLista.appendChild(li);
                 });
                 fontesDiv.classList.remove('hidden');
@@ -281,27 +177,18 @@
                 fontesDiv.classList.add('hidden');
             }
 
-        } catch (error) {
-            console.error("Erro na consulta de códigos:", error);
-            resultadoContent.textContent = "Ocorreu um erro ao consultar os códigos. Verifique sua conexão ou se o servidor Flask está rodando.";
-            showMessage(error.message || "Erro de Conexão: Falha ao se comunicar com o servidor.", 'error');
-
+        } catch (err) {
+            showMessage("Erro de conexão. Tente novamente.", 'error');
+            resultadoContent.textContent = "Falha ao se conectar ao servidor Flask.";
         } finally {
-            // 6. Finalizar estado de carregamento
-            if (btnText.textContent === "Buscando Códigos...") {
-                btnConsultar.disabled = false;
-                btnText.textContent = "Consultar Códigos";
-                loadingSpinner.classList.add('hidden');
-            }
+            btnConsultar.disabled = false;
+            btnText.textContent = "Consultar Códigos";
+            loadingSpinner.classList.add('hidden');
         }
     }
 
-    // Adicionar listener ao botão
     btnConsultar.addEventListener('click', consultarCodigos);
-
-    // Isso impede a submissão de formulário (que causa o "voltar para a página")
-    // e garante que a tecla Enter chame a função JS corretamente.
-    inputPeca.addEventListener('keypress', function(e) {
+    inputPeca.addEventListener('keypress', e => {
         if (e.key === 'Enter' && !e.shiftKey && !btnConsultar.disabled) {
             e.preventDefault();
             consultarCodigos();
