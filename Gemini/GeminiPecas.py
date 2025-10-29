@@ -1,144 +1,112 @@
 import os
-from flask import Flask, render_template, request
+import json
+from flask import Flask, render_template, request, jsonify
 from google import genai
 from google.genai import types
+from google.genai.errors import APIError
+
+# ====================================================================
+# CONFIGURAÇÃO GERAL
+# ====================================================================
 
 app = Flask(__name__)
+app.secret_key = 'SenhaSuperSecretaDoPauloVapu'
 
-# *****************************************************************
-# ATENÇÃO: COLOQUE SUA CHAVE DE API REAL AQUI!
-# AVISO: A chave está exposta no código-fonte, evite fazer isso
-# em produção ou em repositórios públicos.
-# *****************************************************************
-GEMINI_API_KEY = "AIzaSyAiYnR5NgtCxbBO4GsWKTofzKClLXP2jBU"
+# Configuração da API Gemini
+GEMINI_API_KEY_DIRECT = "AIzaSyAiYnR5NgtCxbBO4GsWKTofzKClLXP2jBU"
 
-
-# --- FUNÇÃO DE BUSCA DA PEÇA (OTIMIZADA) ---
-def buscar_codigo_peca(nome_peca: str):
-    """
-    Busca o código de uma peça automotiva e retorna um dicionário com os resultados.
-    """
-    if not GEMINI_API_KEY or GEMINI_API_KEY == "SUA CHAVE DE API REAL AQUI":
-        # Retorna um erro genérico se a chave ainda for o placeholder
-        return {
-            "resultado": "ERRO: Insira sua chave de API real no arquivo app.py.",
-            "tokens": {"total": 0},
-            "fontes": [],
-            "status": "error"
-        }
-
+client = None
+if GEMINI_API_KEY_DIRECT and GEMINI_API_KEY_DIRECT != "SEU_TOKEN_AQUI":
     try:
-        # 1. Inicializa o cliente Gemini
-        client = genai.Client(api_key=GEMINI_API_KEY)
-
-        # 2. PROMPT OTIMIZADO (para economia de tokens)
-        prompt = (
-            f"Busque e retorne os códigos de referência cruzada de fabricantes"
-            f"Busque os códigos de referência cruzada de fabricantes para o item: {nome_peca}. Responda apenas com 'MARCA - PEÇA (OPCIONAL) = CÓDIGO'. Se for um kit, liste os subitens separadamente."
-        )
-
-        # 3. CONFIGURAÇÃO DE GERAÇÃO
-        config = types.GenerateContentConfig(
-            # Limita os tokens de saída para economizar
-            max_output_tokens=250,
-            tools=[
-                types.Tool(
-                    # Ativa o Grounding com Pesquisa Google
-                    google_search=types.GoogleSearch()
-                )
-            ]
-        )
-
-        # 4. Chama a API
-        response = client.models.generate_content(
-            model='gemini-2.5-flash-lite',  # Modelo mais econômico
-            contents=prompt,
-            config=config,
-        )
-
-        # Inicializa as variáveis de resultado
-        resultado_texto = response.text
-        tokens_uso = {"prompt": 0, "candidato": 0, "total": 0}
-        fontes_lista = []
-        # 5. Captura o uso de tokens
-        if response.usage_metadata:
-            usage = response.usage_metadata
-            tokens_uso = {
-                "prompt": usage.prompt_token_count,
-                "candidato": usage.candidates_token_count,
-                "total": usage.total_token_count
-            }
-
-        # 6. Captura as Citações (limitado a 2 para velocidade)
-        if response.candidates and response.candidates[0].grounding_metadata:
-            grounding = response.candidates[0].grounding_metadata
-
-            for i, chunk in enumerate(grounding.grounding_chunks):
-                if i >= 2:  # Limita a APENAS 2 links
-                    break
-                if chunk.web:
-                    fontes_lista.append({
-                        "titulo": chunk.web.title,
-                        "uri": chunk.web.uri
-                    })
-
-        # Retorna o resultado com sucesso
-        return {
-            "resultado": resultado_texto,
-            "tokens": tokens_uso,
-            "fontes": fontes_lista,
-            "status": "success"
-        }
-
+        client = genai.Client(api_key=GEMINI_API_KEY_DIRECT)
     except Exception as e:
-        # Captura erros reais de API (ex: chave inválida, cota esgotada)
-        return {
-            "resultado": f"Erro na API Gemini: {e}",
-            "tokens": {"total": 0},
-            "fontes": [],
-            "status": "error"
-        }
+        print(f"ERRO: Falha ao inicializar o cliente Gemini. Detalhes: {e}")
 
+# ====================================================================
+# INSTRUÇÃO DO SISTEMA PARA A IA
+# ====================================================================
 
-# --- ROTAS DO FLASK ---
+SYSTEM_INSTRUCTION_TEXT = (
+    "Você é um consultor de peças automotivas focado em e-commerce. Sua tarefa é encontrar os códigos de referência "
+    "(OEM, NGK, Bosch, etc.) para as peças solicitadas. Você DEVE priorizar a precisão dos códigos. Ao buscar informações, "
+    "PRIORIZE SITES DE VAREJO E MARKETPLACES BRASILEIROS, como Mercado Livre e Magazine Luiza, pois eles contêm códigos "
+    "verificados em listagens de produtos. O retorno DEVE ser formatado com clareza, utilizando quebras de linha obrigatórias "
+    "(newline characters). Liste CADA PEÇA em uma linha separada, seguida por seus códigos em uma lista com o emoji de chave "
+    "inglesa (🔧) como marcador. EVITE qualquer texto introdutório ou conclusivo. Use o seguinte formato para CADA PEÇA:\n\n"
+    "**PEÇA:**\n🔧 Código 1 (Fabricante)\n🔧 Código 2 (Fabricante), etc.\n\n"
+    "Se não encontrar um código, utilize: '🔧 Não Encontrado'. Responda em Português."
+)
 
-@app.route('/', methods=['GET', 'POST'])
+# ====================================================================
+# ROTAS PÚBLICAS
+# ====================================================================
+
+@app.route('/')
 def index():
-    termo_pesquisa = ""
-
-    # --- se for GET (usado pela extensão) ---
-    if request.method == 'GET':
-        termo_pesquisa = request.args.get('q', '').strip()
-        if termo_pesquisa:
-            resultados = buscar_codigo_peca(termo_pesquisa)
-            return render_template(
-                'index.html',
-                termo_pesquisa=termo_pesquisa,
-                resultado_texto=resultados['resultado'],
-                tokens_uso=resultados['tokens'],
-                fontes=resultados['fontes'],
-                status=resultados['status']
-            )
-
-    # --- se for POST (usado pelo formulário normal) ---
-    if request.method == 'POST':
-        termo_pesquisa = request.form.get('peca', '').strip()
-        if termo_pesquisa:
-            resultados = buscar_codigo_peca(termo_pesquisa)
-            return render_template(
-                'index.html',
-                termo_pesquisa=termo_pesquisa,
-                resultado_texto=resultados['resultado'],
-                tokens_uso=resultados['tokens'],
-                fontes=resultados['fontes'],
-                status=resultados['status']
-            )
-        else:
-            return render_template('index.html', erro="Por favor, digite o nome da peça.")
-
+    # Exibe a página principal
     return render_template('index.html')
 
 
+@app.route('/consultar_codigos', methods=['POST'])
+def consultar_codigos():
+    """Consulta códigos de peças automotivas via Gemini"""
+    if client is None:
+        return jsonify({
+            'error': 'API_KEY_NOT_CONFIGURED',
+            'message': 'A chave da API Gemini não está configurada no servidor.'
+        }), 500
+
+    data = request.get_json()
+    user_query = data.get('query', '').strip()
+
+    if not user_query:
+        return jsonify({'error': 'BAD_REQUEST', 'message': 'Descrição da peça não fornecida.'}), 400
+
+    try:
+        config = types.GenerateContentConfig(
+            system_instruction=SYSTEM_INSTRUCTION_TEXT,
+            tools=[{"google_search": {}}],
+        )
+
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=user_query,
+            config=config,
+        )
+
+        # Extrai o texto e metadados
+        response_text = response.text
+        usage_metadata = {
+            "promptTokenCount": response.usage_metadata.prompt_token_count,
+            "outputTokenCount": response.usage_metadata.candidates_token_count
+        }
+
+        # Extrai fontes (sites usados pela IA)
+        sources = []
+        if response.candidates and response.candidates[0].grounding_metadata and response.candidates[0].grounding_metadata.grounding_chunks:
+            seen_uris = set()
+            for chunk in response.candidates[0].grounding_metadata.grounding_chunks:
+                if chunk.web and chunk.web.uri and chunk.web.uri not in seen_uris:
+                    sources.append({'uri': chunk.web.uri, 'title': chunk.web.title})
+                    seen_uris.add(chunk.web.uri)
+
+        return jsonify({
+            'success': True,
+            'result_text': response_text,
+            'sources': sources,
+            'usageMetadata': usage_metadata
+        }), 200
+
+    except APIError as e:
+        return jsonify({'error': 'GEMINI_API_ERROR',
+                        'message': f'Erro na comunicação com a API do Gemini. Tente novamente. Detalhes: {e.message}'}), 500
+    except Exception as e:
+        return jsonify({'error': 'UNKNOWN_ERROR', 'message': f'Ocorreu um erro interno no servidor: {e}'}), 500
+
+
+# ====================================================================
+# EXECUÇÃO LOCAL
+# ====================================================================
+
 if __name__ == '__main__':
-    # Roda o aplicativo no IP 0.0.0.0 para ser acessível em qualquer lugar
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=True)
